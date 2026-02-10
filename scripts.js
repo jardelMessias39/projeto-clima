@@ -1,5 +1,5 @@
 
-
+// Teste de sincronizacao
 // Função para atualizar o fundo conforme o clima
 function atualizarFundoCaixa(clima) {
     const caixa = document.querySelector(".caixa-media");
