@@ -1,7 +1,4 @@
 
-// Variáveis globais (defina no seu config.js)
-const chave = "sua_chave_openweather";
-const chaveIA = "sua_chave_ia";
 
 // Função para atualizar o fundo conforme o clima
 function atualizarFundoCaixa(clima) {
@@ -29,7 +26,8 @@ function grausParaDirecao(graus) {
 
 // Função principal que busca o clima atual e depois chama a previsão dos 5 dias
 async function cliqueinoBotao() {
-    const cidade = document.querySelector(".input-cidade").value.trim();
+   // No scripts.js, dentro da função de busca, limpe o ponto final:
+const cidade = document.querySelector(".input-cidade").value.replace(".", "").trim();
     const caixa = document.querySelector(".caixa-media");
 
     if (!cidade) return;
@@ -73,6 +71,29 @@ async function cliqueinoBotao() {
         console.error(error);
     }
 }
+// Função para busca por voz
+function detectarVoz() {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'pt-BR';
+
+    recognition.onstart = () => {
+        console.log("Voz ativada, pode falar...");
+        document.querySelector(".input-cidade").placeholder = "Ouvindo...";
+    };
+
+    recognition.onresult = (event) => {
+        const cidade = event.results[0][0].transcript;
+        document.querySelector(".input-cidade").value = cidade;
+        cliqueinoBotao(); // Chama a busca automaticamente após falar
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Erro na voz: ", event.error);
+        alert("Não consegui ouvir bem, tente novamente.");
+    };
+
+    recognition.start();
+}
 
 // Função para buscar e exibir a previsão dos próximos 5 dias
 async function exibirPrevisao5Dias(lat, lon) {
@@ -112,14 +133,13 @@ async function exibirPrevisao5Dias(lat, lon) {
         let html = '<h3>Previsão para os próximos dias</h3><div class="dias-semana">';
 
         Object.entries(previsaoPorDia).slice(0, 5).forEach(([data, info]) => {
-            const dataFormatada = new Date(data).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' });
-
+            const dataFormatada = new Date(data + "T12:00:00").toLocaleDateString('pt-BR', { weekday: 'short' });
             html += `
                 <div class="dia">
                     <h4>${dataFormatada}</h4>
                     <img src="https://openweathermap.org/img/wn/${info.icon}@2x.png" alt="${info.descricao}">
                     <p><strong>Máx:</strong> ${Math.round(info.temp_max)}°C / <strong>Mín:</strong> ${Math.round(info.temp_min)}°C</p>
-                    <p><strong>Chuva:</strong> ${Math.round(info.chuva * 100)}%</p>
+                    <p><strong>Chuva:</strong> ${Math.round(info.chuva * 100)}%💧</p>
                     <p><strong>Vento:</strong> ${Math.round(info.vento)} m/s</p>
                     <p><strong>Umidade:</strong> ${info.umidade}%</p>
                 </div>
