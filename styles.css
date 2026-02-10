@@ -1,0 +1,176 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+body {
+   background-image: url("https://loremflickr.com/1600/900/nature,landscape");
+    background-size: cover;
+    background-position: center;
+    font-family: 'Roboto', sans-serif;
+    background-repeat: no-repeat;
+    min-height: 100vh; /* Mudamos de height para min-height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    
+}
+.caixa-maior {
+    background-color: rgba(0,0,0,0.6);
+    color: white;
+    width: 450px;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap; /* Faz o conteúdo pular para a linha de baixo */
+    gap: 10px;
+    height: auto; /* Garante que ela cresça conforme o conteúdo */
+}
+.caixa-media {
+    width: 100%; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 30px;
+}  
+.input-cidade {
+    border: none;
+    border-radius: 20px;
+    padding: 10px;
+    outline: none;
+    font-size: 20px;
+    background-color: rgba(255,255,255,0.3);
+    width: calc(100% - 100px);
+    color: rgb(224, 228, 223)
+}
+.botao {
+    border: none;
+    border-radius: 10px;
+    outline: none;
+    cursor: pointer;
+    margin-left:10px;
+    background-color: rgba(255, 255, 255, 0.151);
+    float: right;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.img-botao {
+   
+  width: 30px;
+  background-color: #7c7c7c;
+  transform: scale(1.1);
+  animation: mover 1s infinite alternate;
+}
+.botao:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.2);
+}
+
+@keyframes mover {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-3px);
+  }
+}
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* O círculo que gira */
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 4px solid #ffffff;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Estilizando a temperatura para ficar grande e bonita */
+.temp {
+    font-size: 28px;
+    font-weight: bold;
+    color: #fff;
+    margin-top: 10px;
+
+  
+}
+.cidade {
+font-size: 28px;
+font-weight: bold;
+color: #fff;
+}
+.botao-ia {
+    border-radius: 10px;
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px 15px;
+    font-size: 18px;
+    color: #fff;
+    background-color: rgb(14, 121, 255);
+    border: none;
+    cursor: pointer;
+    /* Adicione transição para suavizar as mudanças */
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.botao-ia:hover {
+    background-color: rgb(10, 90, 200);
+    box-shadow: 0 4px 15px rgba(14, 121, 255, 0.4);
+}
+
+.botao-ia:active {
+    background-color: rgba(30, 42, 56, 0.8);
+    transform: scale(0.95); /* Scale levemente maior que o anterior */
+}
+
+.resposta-ia {
+    margin-top: 15px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 15px; /* Aumentei um pouco para facilitar a leitura */
+    line-height: 1.5;
+    border-left: 4px solid rgb(14, 121, 255); /* Barrinha azul lateral */
+    color: #f0f0f0;
+    font-style: italic;
+}
+.caixa-media {
+    /* Mantenha suas configurações de largura e margem */
+    transition: background 0.5s ease-in-out;
+    position: relative;
+    overflow: hidden; /* Garante que a imagem não saia das bordas arredondadas */
+    color: white; /* Garante que o texto apareça sobre a imagem */
+    text-shadow: 1px 1px 5px rgba(0,0,0,0.7); /* Dá uma sombra no texto para facilitar a leitura */
+}
+.icone {
+    width: 90px;
+    height: 90px;
+    display: block;
+    margin: 10px auto;
+    
+    /* Remove qualquer cor de fundo que possa estar aparecendo */
+    background: transparent !important; 
+    border: none !important;
+    
+    /* O efeito de brilho agora vai focar só no desenho do sol/nuvem */
+    filter: drop-shadow(0px 0px 12px rgba(255, 215, 0, 0.9)); 
+}

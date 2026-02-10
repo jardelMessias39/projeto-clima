@@ -1,0 +1,24 @@
+Previsão do Tempo com IA e Voz
+Um projeto moderno de previsão do tempo que utiliza a API do OpenWeather para dados meteorológicos, reconhecimento de voz para buscas mãos-livres e a API do Groq (IA) para dar sugestões personalizadas de roupas.
+
+🚀 Funcionalidades
+Busca em Tempo Real: Dados precisos de temperatura e umidade via OpenWeather API.
+
+Inteligência Artificial: Sugestões inteligentes de vestuário baseadas no clima atual da cidade.
+
+Comando de Voz: Microfone integrado que permite pesquisar cidades falando.
+
+Interface Dinâmica: O fundo da caixa de previsão muda automaticamente de acordo com o clima (sol, chuva, nuvens).
+
+Totalmente Responsivo: Design adaptado para PCs e celulares (com suporte a HTTPS via GitHub Pages).
+
+🛠️ Tecnologias Utilizadas
+HTML5 & CSS3: Estrutura e estilização moderna com degradês e efeitos de vidro (glassmorphism).
+
+JavaScript (ES6+): Lógica assíncrona com fetch e async/await.
+
+OpenWeather API: Fonte de dados meteorológicos.
+
+Groq API (Llama-3): Processamento de linguagem natural para as dicas da IA.
+
+Web Speech API: Reconhecimento de voz nativo do navegador.
