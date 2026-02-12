@@ -102,8 +102,7 @@ function tocarSomAmbienteComCodigo(weather) {
 // Buscar e agrupar previsão semanal
 async function buscarPrevisaoSemanal(lat, lon) {
     try {
-       const resposta = await fetch(`https://jardel-portfolio.onrender.com/api/clima?cidade=${cidade}`);
-        const listaDias = await resposta.json();
+       const resposta = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/api/previsao?lat=${lat}&lon=${lon}`);
 
         // Sempre define o primeiro dia da lista como o destaque inicial (Hoje)
         if (!climaDeHoje) {
@@ -160,7 +159,7 @@ async function cliqueinoBotao() {
     caixa.innerHTML = `<div class="loading"><p>Buscando...</p><div class="spinner"></div></div>`;
 
     try {
-        const resposta = await fetch(`https://seu-portfolio.onrender.com/api/clima?cidade=${cidade}`);
+        const resposta = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/api/previsao?lat=${lat}&lon=${lon}`);
         if (!resposta.ok) throw new Error();
         const dados = await resposta.json();
 
@@ -194,7 +193,7 @@ async function sugerirRoupaIA() {
     local.textContent = "IA analisando o guarda-roupa...";
 
     try {
-        const res = await fetch("https://seu-portfolio.onrender.com/api/sugerir", {
+const res = await fetch("https://meu-portfolio-backend-wgmj.onrender.com/api/sugerir", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ clima: { cidade, temp, descricao: "atual" } })
