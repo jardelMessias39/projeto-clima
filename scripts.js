@@ -103,6 +103,7 @@ function tocarSomAmbienteComCodigo(weather) {
 // Buscar e agrupar previsão semanal
 async function buscarPrevisaoSemanal(lat, lon) {
     try {
+        
         const resposta = await fetch(`http://localhost:3000/previsao?lat=${lat}&lon=${lon}`);
         const listaDias = await resposta.json();
 
@@ -125,13 +126,17 @@ function renderizarCards(listaDias, diaNoDestaque) {
     const container = document.querySelector(".previsao-semanal");
     container.innerHTML = "";
 
+    // Ordena os dias pela data real (fullDate)
+    const listaDiasOrdenada = listaDias.slice().sort((a, b) => new Date(a.fullDate) - new Date(b.fullDate));
+
+    // Filtra para não mostrar o dia em destaque
+    const diasParaExibir = listaDiasOrdenada.filter(dia => dia.dataLabel !== diaNoDestaque);
+
+    // Debug para garantir ordem e filtro
     console.log("Dia em destaque:", diaNoDestaque);
-    console.log("Dias disponíveis:", listaDias.map(d => d.dataLabel));
+    console.log("Dias para exibir:", diasParaExibir.map(d => d.dataLabel));
 
-    // Usa o valor do parâmetro diaNoDestaque diretamente
-   const listaDiasOrdenada = listaDias.sort((a, b) => new Date(a.fullDate) - new Date(b.fullDate));
-const diasParaExibir = listaDiasOrdenada.filter(dia => dia.dataLabel !== diaNoDestaque);
-
+    // Renderiza os cards
     diasParaExibir.forEach(dia => {
         const card = document.createElement("div");
         card.className = "card-previsao";
@@ -145,7 +150,7 @@ const diasParaExibir = listaDiasOrdenada.filter(dia => dia.dataLabel !== diaNoDe
         card.onclick = () => {
             climaDeHoje = dia;
             atualizarPainelPrincipal(dia);
-            renderizarCards(listaDias, dia.dataLabel);
+            renderizarCards(listaDias, dia.dataLabel); // atualiza com novo destaque
         };
 
         container.appendChild(card);
