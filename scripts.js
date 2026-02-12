@@ -103,56 +103,51 @@ function tocarSomAmbienteComCodigo(weather) {
 // Buscar e agrupar previsão semanal
 async function buscarPrevisaoSemanal(lat, lon) {
     try {
-        
         const resposta = await fetch(`http://localhost:3000/previsao?lat=${lat}&lon=${lon}`);
         const listaDias = await resposta.json();
 
-        if (!listaDias || listaDias.length === 0) {
-            console.error("Previsão semanal vazia ou inválida");
-            return;
+        // Sempre define o primeiro dia da lista como o destaque inicial (Hoje)
+        if (!climaDeHoje) {
+            climaDeHoje = listaDias[0];
         }
 
-        if (!climaDeHoje) climaDeHoje = listaDias[0];
-
-        // Passa o objeto do dia em destaque, não a lista inteira
         atualizarPainelPrincipal(climaDeHoje);
-        renderizarCards(listaDias, climaDeHoje.dataLabel);
-    } catch (e) {
-        console.error("Erro na previsão semanal", e);
+        
+        // Passamos a lista completa e o OBJETO do dia que está em destaque
+        renderizarCards(listaDias, climaDeHoje); 
+    } catch (error) {
+        console.error("Erro na previsão semanal", error);
     }
 }
 // Função para renderizar os cards, excluindo o dia em destaque
-function renderizarCards(listaDias, diaNoDestaque) {
+function renderizarCards() {
     const container = document.querySelector(".previsao-semanal");
+    if (!container) return;
     container.innerHTML = "";
 
-    // Ordena os dias pela data real (fullDate)
-    const listaDiasOrdenada = listaDias.slice().sort((a, b) => new Date(a.fullDate) - new Date(b.fullDate));
+    // Pegamos a DATA que está no destaque agora (ex: 2026-02-12)
+    // Precisamos que a função atualizarPainelPrincipal salve essa data em algum lugar
+    const dataNoDestaque = climaDeHoje.fullDate; 
 
-    // Filtra para não mostrar o dia em destaque
-    const diasParaExibir = listaDiasOrdenada.filter(dia => dia.dataLabel !== diaNoDestaque);
+    // O Filtro agora usa a DATA REAL, que é única, e não o nome do dia
+    const diasParaExibir = listaCompletaGlobal.filter(dia => dia.fullDate !== dataNoDestaque);
 
-    // Debug para garantir ordem e filtro
-    console.log("Dia em destaque:", diaNoDestaque);
-    console.log("Dias para exibir:", diasParaExibir.map(d => d.dataLabel));
-
-    // Renderiza os cards
-    diasParaExibir.forEach(dia => {
+    // Mostra os próximos 6 dias
+    diasParaExibir.slice(0, 6).forEach(dia => {
         const card = document.createElement("div");
         card.className = "card-previsao";
         card.innerHTML = `
             <h4>${dia.dataLabel}</h4>
-            <img src="https://openweathermap.org/img/wn/${dia.icon}@2x.png" alt="Ícone do clima">
+            <img src="https://openweathermap.org/img/wn/${dia.icon}@2x.png">
             <p class="card-temp"><strong>${Math.round(dia.temp_max)}°</strong> ${Math.round(dia.temp_min)}°</p>
             <p class="card-chuva">💧${Math.round(dia.chuva * 100)}%</p>
         `;
 
         card.onclick = () => {
-            climaDeHoje = dia;
+            climaDeHoje = dia; 
             atualizarPainelPrincipal(dia);
-            renderizarCards(listaDias, dia.dataLabel); // atualiza com novo destaque
+            renderizarCards(); // Re-renderiza: o novo dia some de baixo e o antigo volta!
         };
-
         container.appendChild(card);
     });
 }
