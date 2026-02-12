@@ -1,199 +1,238 @@
+let climaDeHoje = null;
+let somAmbiente = null;
 
-// Teste de sincronizacao
-// Função para atualizar o fundo conforme o clima
-function atualizarFundoCaixa(clima) {
-    const caixa = document.querySelector(".caixa-media");
-    const imagens = {
-        'Clear': 'sunny',
-        'Clouds': 'clouds',
-        'Rain': 'rain',
-        'Thunderstorm': 'storm',
-        'Snow': 'snow'
+// Atualizar fundo da caixa conforme clima
+function atualizarFundoCaixa(climaPrincipal) {
+    const caixaMedia = document.querySelector(".caixa-media");
+
+    const temas = {
+        'Clear': 'sunny,clear-sky,sunlight',
+        'Clouds': 'cloudy,overcast,sky',
+        'Rain': 'rainy,weather,water',
+        'Thunderstorm': 'lightning,storm',
+        'Snow': 'snow,winter',
+        'Drizzle': 'mist,rain',
+        'Mist': 'fog,mist',
+        'Fog': 'fog,mist'
     };
-    const termo = imagens[clima] || 'weather';
-    const urlDinamica = `https://source.unsplash.com/featured/400x600/?${termo}`;
-    caixa.style.background = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('${urlDinamica}')`;
-    caixa.style.backgroundSize = "cover";
-    caixa.style.backgroundPosition = "center";
+
+    const busca = temas[climaPrincipal] || 'weather,sky';
+    const urlFoto = `https://source.unsplash.com/featured/800x1000?${busca}`;
+
+    caixaMedia.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('${urlFoto}')`;
 }
 
-// Função auxiliar para converter graus em direção do vento
-function grausParaDirecao(graus) {
-    const direcoes = ["N", "NE", "L", "SE", "S", "SO", "O", "NO"];
-    const index = Math.round(graus / 45) % 8;
-    return direcoes[index];
+// Atualizar painel principal com dados detalhados
+function atualizarPainelPrincipal(dados) {
+    const cidadeNome = document.querySelector(".cidade");
+    const tempPrincipal = document.querySelector(".temp");
+    const tempMaxMin = document.querySelector(".temp-max-min");
+    const iconePrincipal = document.querySelector(".icone");
+    const umidadePrincipal = document.querySelector(".umidade");
+    const pressaoPrincipal = document.querySelector(".pressao");
+    const ventoPrincipal = document.querySelector(".vento");
+    const descricaoClima = document.querySelector(".descricao-clima");
+
+    const nomeCidade = document.querySelector(".nome-cidade");
+    const diaDestaque = document.querySelector(".dia-destaque");
+
+    nomeCidade.textContent = dados.name || "Localização desconhecida";
+    diaDestaque.textContent = dados.dataLabel || (dados.weather?.[0].main || "").toUpperCase();
+        tempPrincipal.textContent = `${Math.round(dados.main?.temp || dados.temp_max || 0)}°C`;
+
+    tempMaxMin.textContent = `Máx: ${Math.round(dados.main?.temp_max || dados.temp_max || 0)}°C | Mín: ${Math.round(dados.main?.temp_min || dados.temp_min || 0)}°C`;
+
+    // Garantir que o ícone não fique vazio e com fallback "sol"
+    const icone = dados.weather?.[0].icon || dados.icon || '01d';
+    iconePrincipal.src = `https://openweathermap.org/img/wn/${icone}@4x.png`;
+    iconePrincipal.alt = dados.weather?.[0].description || 'Ícone do clima';
+
+    descricaoClima.textContent = (dados.weather?.[0].description || dados.climaPrincipal || '').toUpperCase();
+
+    const umidadeValue = dados.main?.humidity ?? dados.umidade ?? 0;
+    umidadePrincipal.textContent = `💧 Umidade: ${umidadeValue}%`;
+
+    const pressaoValue = dados.main?.pressure ?? dados.pressao ?? 0;
+    pressaoPrincipal.textContent = `🌡️ Pressão: ${pressaoValue} hPa`;
+
+    // Corrigir NaN no vento com fallback zero
+    const ventoValue = Math.round(dados.wind?.speed ?? dados.vento ?? 0);
+    ventoPrincipal.textContent = `💨 Vento: ${ventoValue} m/s`;
+
+    atualizarFundoCaixa(dados.weather?.[0].main || dados.climaPrincipal);
+
+    // Opcional: tocar som ambiente conforme clima
+    tocarSomAmbienteComCodigo(dados.weather);
 }
 
-// Função principal que busca o clima atual e depois chama a previsão dos 5 dias
-async function cliqueinoBotao() {
-   // No scripts.js, dentro da função de busca, limpe o ponto final:
-const cidade = document.querySelector(".input-cidade").value.replace(".", "").trim();
-    const caixa = document.querySelector(".caixa-media");
+// Função para tocar som ambiente baseado no código do clima
+function tocarSomAmbienteComCodigo(weather) {
+    if (!weather || !weather[0]) return;
 
-    if (!cidade) return;
+    const id = weather[0].id;
+    let urlSom = "";
 
-    caixa.innerHTML = `
-        <div class="loading">
-            <p>Buscando informações...</p>
-            <div class="spinner"></div>
-        </div>
-    `;
+    if (id >= 200 && id <= 232) {
+        urlSom = "./sons/som-do-trovao.mp3";
+    } else if (id >= 300 && id <= 321) {
+        urlSom = "./sons/som-da-chuva.mp3";
+    } else if (id >= 500 && id <= 531) {
+        urlSom = "./sons/som-da-chuva.mp3";
+    } else if (id >= 600 && id <= 622) {
+        urlSom = "./sons/som-de-neve.mp3";
+    } else if (id === 800) {
+        urlSom = "./sons/som-do-vento.mp3";
+    } else if (id >= 801 && id <= 804) {
+        urlSom = "./sons/som-do-vento.mp3";
+    } else {
+        return; // Sem som para outros casos
+    }
 
+    if (somAmbiente) {
+        somAmbiente.pause();
+        somAmbiente.currentTime = 0;
+        somAmbiente = null;
+    }
+
+    somAmbiente = new Audio(urlSom);
+    somAmbiente.loop = true;
+    somAmbiente.volume = 0.15;
+    somAmbiente.play().catch(e => console.log("Erro ao tocar som:", e));
+}
+
+// Buscar e agrupar previsão semanal
+async function buscarPrevisaoSemanal(lat, lon) {
     try {
-        const urlAtual = `https://api.openweathermap.org/data/2.5/weather?q=${cidade}&appid=${chave}&units=metric&lang=pt_br`;
-        const respostaAtual = await fetch(urlAtual);
-        const dadosAtual = await respostaAtual.json();
+        const resposta = await fetch(`http://localhost:3000/previsao?lat=${lat}&lon=${lon}`);
+        const listaDias = await resposta.json();
 
-        if (dadosAtual.cod === "404") {
-            caixa.innerHTML = `<p>Cidade não encontrada. Tente novamente!</p>`;
+        if (!listaDias || listaDias.length === 0) {
+            console.error("Previsão semanal vazia ou inválida");
             return;
         }
 
-        atualizarFundoCaixa(dadosAtual.weather[0].main);
+        if (!climaDeHoje) climaDeHoje = listaDias[0];
+
+        // Passa o objeto do dia em destaque, não a lista inteira
+        atualizarPainelPrincipal(climaDeHoje);
+        renderizarCards(listaDias, climaDeHoje.dataLabel);
+    } catch (e) {
+        console.error("Erro na previsão semanal", e);
+    }
+}
+// Função para renderizar os cards, excluindo o dia em destaque
+function renderizarCards(listaDias, diaNoDestaque) {
+    const container = document.querySelector(".previsao-semanal");
+    container.innerHTML = "";
+
+    console.log("Dia em destaque:", diaNoDestaque);
+    console.log("Dias disponíveis:", listaDias.map(d => d.dataLabel));
+
+    // Usa o valor do parâmetro diaNoDestaque diretamente
+   const listaDiasOrdenada = listaDias.sort((a, b) => new Date(a.fullDate) - new Date(b.fullDate));
+const diasParaExibir = listaDiasOrdenada.filter(dia => dia.dataLabel !== diaNoDestaque);
+
+    diasParaExibir.forEach(dia => {
+        const card = document.createElement("div");
+        card.className = "card-previsao";
+        card.innerHTML = `
+            <h4>${dia.dataLabel}</h4>
+            <img src="https://openweathermap.org/img/wn/${dia.icon}@2x.png" alt="Ícone do clima">
+            <p class="card-temp"><strong>${Math.round(dia.temp_max)}°</strong> ${Math.round(dia.temp_min)}°</p>
+            <p class="card-chuva">💧${Math.round(dia.chuva * 100)}%</p>
+        `;
+
+        card.onclick = () => {
+            climaDeHoje = dia;
+            atualizarPainelPrincipal(dia);
+            renderizarCards(listaDias, dia.dataLabel);
+        };
+
+        container.appendChild(card);
+    });
+}
+// Função principal para buscar clima ao clicar no botão ou Enter
+async function cliqueinoBotao() {
+    const campoInput = document.querySelector(".input-cidade");
+    const cidade = campoInput.value.replace(/\./g, "").trim();
+    const caixa = document.querySelector(".caixa-media");
+    if (!cidade) return;
+
+    caixa.innerHTML = `<div class="loading"><p>Buscando...</p><div class="spinner"></div></div>`;
+
+    try {
+        const resposta = await fetch(`http://localhost:3000/clima?cidade=${cidade}`);
+        if (!resposta.ok) throw new Error();
+        const dados = await resposta.json();
 
         caixa.innerHTML = `
-            <h2 class="cidade">${dadosAtual.name}</h2>
-            <p class="temp">${Math.round(dadosAtual.main.temp)}°C</p>
-            <img class="icone" src="https://openweathermap.org/img/wn/${dadosAtual.weather[0].icon}@2x.png" alt="Ícone do tempo">
-            <p class="umidade">${dadosAtual.main.humidity}% Umidade</p>
-            <button class="botao-ia" onclick="sugerirRoupaIA()">Sugestão de Roupa IA</button>
-            <p class="resposta-ia">Aguardando solicitação...</p>
+            <h2 class="cidade"></h2>
+            <p class="temp"></p>
+            <p class="descricao-clima"></p>
+            <img class="icone" src="" alt="clima">
+            <p class="temp-max-min"></p>
+            <p class="umidade"></p>
+            <p class="pressao"></p>
+            <p class="vento"></p>
+            <button class="botao-ia" onclick="sugerirRoupaIA()">✨ Dica da IA</button>
+            <p class="resposta-ia">O que vestir hoje?</p>
             <div class="previsao-semanal"></div>
         `;
 
-        const { lat, lon } = dadosAtual.coord;
-
-        // Chama a função para exibir a previsão dos 5 dias
-        await exibirPrevisao5Dias(lat, lon);
+        atualizarPainelPrincipal(dados);
+        await buscarPrevisaoSemanal(dados.coord.lat, dados.coord.lon);
 
     } catch (error) {
-        caixa.innerHTML = `<p>Erro ao buscar dados.</p>`;
-        console.error(error);
+        caixa.innerHTML = `<p>Cidade não encontrada. Tente novamente!</p>`;
     }
 }
-// Função para busca por voz
+// IA e Eventos (mantidos e integrados)
+async function sugerirRoupaIA() {
+    const local = document.querySelector(".resposta-ia");
+    const cidade = document.querySelector(".cidade").textContent;
+    const temp = document.querySelector(".temp").textContent;
+    
+    local.textContent = "IA analisando o guarda-roupa...";
+
+    try {
+        const res = await fetch("http://localhost:3000/sugerir", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clima: { cidade, temp, descricao: "atual" } })
+        });
+        const d = await res.json();
+        local.textContent = d.sugestao;
+    } catch {
+        local.textContent = "IA ficou tímida. Tente de novo!";
+    }
+}
+
+document.querySelector(".input-cidade").addEventListener("keyup", e => { if (e.key === "Enter")
+     cliqueinoBotao(); });
+// --- FUNÇÃO DE VOZ (Corrigindo o Erro do Botão) ---
 function detectarVoz() {
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.lang = 'pt-BR';
 
     recognition.onstart = () => {
-        console.log("Voz ativada, pode falar...");
         document.querySelector(".input-cidade").placeholder = "Ouvindo...";
     };
 
     recognition.onresult = (event) => {
-        const cidade = event.results[0][0].transcript;
-        document.querySelector(".input-cidade").value = cidade;
-        cliqueinoBotao(); // Chama a busca automaticamente após falar
+        const cidadevoz = event.results[0][0].transcript;
+        document.querySelector(".input-cidade").value = cidadevoz;
+        cliqueinoBotao(); // Busca automaticamente
     };
 
-    recognition.onerror = (event) => {
-        console.error("Erro na voz: ", event.error);
-        alert("Não consegui ouvir bem, tente novamente.");
+    recognition.onerror = () => {
+        alert("Não consegui ouvir. Tente novamente!");
+        document.querySelector(".input-cidade").placeholder = "Digite a cidade...";
     };
 
     recognition.start();
 }
 
-// Função para buscar e exibir a previsão dos próximos 5 dias
-async function exibirPrevisao5Dias(lat, lon) {
-    const caixa = document.querySelector(".caixa-media .previsao-semanal");
-    const url5dias = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${chave}&units=metric&lang=pt_br`;
-
-    try {
-        const resposta = await fetch(url5dias);
-        if (!resposta.ok) throw new Error(`Erro na API: ${resposta.status}`);
-
-        const dados = await resposta.json();
-
-        // Agrupar dados por dia
-        const previsaoPorDia = {};
-
-        dados.list.forEach(item => {
-            const data = item.dt_txt.split(' ')[0];
-            if (!previsaoPorDia[data]) {
-                previsaoPorDia[data] = {
-                    temp_min: item.main.temp_min,
-                    temp_max: item.main.temp_max,
-                    chuva: item.pop || 0,
-                    vento: item.wind.speed,
-                    umidade: item.main.humidity,
-                    icon: item.weather[0].icon,
-                    descricao: item.weather[0].description
-                };
-            } else {
-                previsaoPorDia[data].temp_min = Math.min(previsaoPorDia[data].temp_min, item.main.temp_min);
-                previsaoPorDia[data].temp_max = Math.max(previsaoPorDia[data].temp_max, item.main.temp_max);
-                previsaoPorDia[data].chuva = Math.max(previsaoPorDia[data].chuva, item.pop || 0);
-                previsaoPorDia[data].vento = Math.max(previsaoPorDia[data].vento, item.wind.speed);
-                previsaoPorDia[data].umidade = Math.max(previsaoPorDia[data].umidade, item.main.humidity);
-            }
-        });
-
-        let html = '<h3>Previsão para os próximos dias</h3><div class="dias-semana">';
-
-        Object.entries(previsaoPorDia).slice(0, 5).forEach(([data, info]) => {
-            const dataFormatada = new Date(data + "T12:00:00").toLocaleDateString('pt-BR', { weekday: 'short' });
-            html += `
-                <div class="dia">
-                    <h4>${dataFormatada}</h4>
-                    <img src="https://openweathermap.org/img/wn/${info.icon}@2x.png" alt="${info.descricao}">
-                    <p><strong>Máx:</strong> ${Math.round(info.temp_max)}°C / <strong>Mín:</strong> ${Math.round(info.temp_min)}°C</p>
-                    <p><strong>Chuva:</strong> ${Math.round(info.chuva * 100)}%💧</p>
-                    <p><strong>Vento:</strong> ${Math.round(info.vento)} m/s</p>
-                    <p><strong>Umidade:</strong> ${info.umidade}%</p>
-                </div>
-            `;
-        });
-
-        html += '</div>';
-        caixa.innerHTML = html;
-
-    } catch (error) {
-        caixa.innerHTML = `<p>Erro ao carregar a previsão.</p>`;
-        console.error(error);
-    }
-}
-
-// Função para sugerir roupa via IA
-async function sugerirRoupaIA() {
-    const temperatura = document.querySelector(".temp").textContent;
-    const umidade = document.querySelector(".umidade").textContent;
-    const cidade = document.querySelector(".cidade").textContent;
-    const localResposta = document.querySelector(".resposta-ia");
-
-    localResposta.textContent = "IA pensando...";
-
-    try {
-        const respostaIA = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${chaveIA}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "llama-3.1-8b-instant",
-                messages: [
-                    {
-                        role: "user",
-                        content: `Sugira uma roupa curta e objetiva para a cidade de: ${cidade} 
-                        com temperatura de: ${temperatura} 
-                        e umidade de ${umidade}. A resposta deve ser em 3 frases curtas.`
-                    }
-                ]
-            })
-        });
-
-        const dados = await respostaIA.json();
-        const sugestao = dados.choices[0].message.content;
-        localResposta.textContent = sugestao;
-    } catch (err) {
-        localResposta.textContent = "Erro ao falar com a IA.";
-        console.error(err);
-    }
-}
-
-// Evento ENTER para buscar clima ao digitar na input
+// --- EVENTO DE TECLADO ---
 document.querySelector(".input-cidade").addEventListener("keyup", event => {
     if (event.key === "Enter") {
         cliqueinoBotao();
