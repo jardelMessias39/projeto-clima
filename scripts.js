@@ -128,7 +128,7 @@ async function buscarPrevisaoSemanal(lat, lon) {
 
 // 6. Clique no Botão
 async function cliqueinoBotao() {
-    const cidade = document.querySelector(".input-cidade").value.trim();
+  const cidade = document.querySelector(".input-cidade").value.replace(/\./g, "").trim();
     const caixa = document.querySelector(".caixa-media");
     if (!cidade) return;
 
