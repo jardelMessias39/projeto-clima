@@ -102,7 +102,7 @@ function tocarSomAmbienteComCodigo(weather) {
 // Buscar e agrupar previsão semanal
 async function buscarPrevisaoSemanal(lat, lon) {
     try {
-        const resposta = await fetch(`https://seu-portfolio.onrender.com/api/previsao?lat=${lat}&lon=${lon}`);
+       const resposta = await fetch(`https://jardel-portfolio.onrender.com/api/clima?cidade=${cidade}`);
         const listaDias = await resposta.json();
 
         // Sempre define o primeiro dia da lista como o destaque inicial (Hoje)
