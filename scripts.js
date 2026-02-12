@@ -102,17 +102,18 @@ function tocarSomAmbienteComCodigo(weather) {
 // Buscar e agrupar previsão semanal
 async function buscarPrevisaoSemanal(lat, lon) {
     try {
-       const resposta = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/api/previsao?lat=${lat}&lon=${lon}`);
+        const resposta = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/api/previsao?lat=${lat}&lon=${lon}`);
+        const listaDias = await resposta.json(); // AGORA A VARIÁVEL 'resposta' É USADA!
 
-        // Sempre define o primeiro dia da lista como o destaque inicial (Hoje)
+        listaCompletaGlobal = listaDias; // Salva na global para o filtro funcionar
+
+        // Se ainda não temos um destaque, o primeiro dia (hoje) vira o destaque
         if (!climaDeHoje) {
             climaDeHoje = listaDias[0];
         }
 
         atualizarPainelPrincipal(climaDeHoje);
-        
-        // Passamos a lista completa e o OBJETO do dia que está em destaque
-        renderizarCards(listaDias, climaDeHoje); 
+        renderizarCards(); 
     } catch (error) {
         console.error("Erro na previsão semanal", error);
     }
@@ -151,37 +152,42 @@ function renderizarCards() {
 }
 // Função principal para buscar clima ao clicar no botão ou Enter
 async function cliqueinoBotao() {
-    const campoInput = document.querySelector(".input-cidade");
-    const cidade = campoInput.value.replace(/\./g, "").trim();
+    const cidade = document.querySelector(".input-cidade").value.trim();
     const caixa = document.querySelector(".caixa-media");
     if (!cidade) return;
 
-    caixa.innerHTML = `<div class="loading"><p>Buscando...</p><div class="spinner"></div></div>`;
+    caixa.innerHTML = `<div class="loading"><p>Buscando...</p></div>`;
 
     try {
-        const resposta = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/api/previsao?lat=${lat}&lon=${lon}`);
-        if (!resposta.ok) throw new Error();
-        const dados = await resposta.json();
+        // 1. Busca o clima ATUAL para pegar as coordenadas
+        const resposta = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/api/clima?cidade=${cidade}`);
+        const dadosClima = await resposta.json();
+        caixa.style.backgroundImage = `url('https://source.unsplash.com/1600x900/?${dadosClima.weather[0].main}')`;
+        if (dadosClima.erro || !dadosClima.coord) throw new Error();
 
+        // 2. Limpa o destaque anterior para o novo carregar
+        climaDeHoje = null; 
+
+        // 3. Monta o HTML da caixa
         caixa.innerHTML = `
-            <h2 class="cidade"></h2>
-            <p class="temp"></p>
-            <p class="descricao-clima"></p>
-            <img class="icone" src="" alt="clima">
-            <p class="temp-max-min"></p>
-            <p class="umidade"></p>
-            <p class="pressao"></p>
-            <p class="vento"></p>
+            <h2 class="cidade">${dadosClima.name}</h2>
+            <p class="temp">${Math.round(dadosClima.main.temp)}°C</p>
+            <p class="descricao-clima">${dadosClima.weather[0].description}</p>
+            <img class="icone" src="https://openweathermap.org/img/wn/${dadosClima.weather[0].icon}@2x.png">
+            <div class="detalhes">
+                <p>Umidade: ${dadosClima.main.humidity}%</p>
+                <p>Vento: ${dadosClima.wind.speed}km/h</p>
+            </div>
             <button class="botao-ia" onclick="sugerirRoupaIA()">✨ Dica da IA</button>
             <p class="resposta-ia">O que vestir hoje?</p>
             <div class="previsao-semanal"></div>
         `;
 
-        atualizarPainelPrincipal(dados);
-        await buscarPrevisaoSemanal(dados.coord.lat, dados.coord.lon);
+        // 4. Agora sim, busca os 7 dias usando a latitude e longitude que o servidor deu
+        await buscarPrevisaoSemanal(dadosClima.coord.lat, dadosClima.coord.lon);
 
     } catch (error) {
-        caixa.innerHTML = `<p>Cidade não encontrada. Tente novamente!</p>`;
+        caixa.innerHTML = `<p>Cidade não encontrada ou erro no servidor.</p>`;
     }
 }
 // IA e Eventos (mantidos e integrados)
