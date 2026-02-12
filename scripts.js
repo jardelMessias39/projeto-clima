@@ -17,9 +17,8 @@ function atualizarFundoCaixa(climaPrincipal) {
     };
 
     const busca = temas[climaPrincipal] || 'weather,sky';
-    const urlFoto = `https://source.unsplash.com/featured/800x1000?${busca}`;
-
-    caixaMedia.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('${urlFoto}')`;
+   const urlFoto = `https://source.unsplash.com/1600x900/?${busca}`;
+    caixaMedia.style.backgroundImage = `url('${urlFoto}')`;
 }
 
 // Atualizar painel principal com dados detalhados
@@ -103,7 +102,7 @@ function tocarSomAmbienteComCodigo(weather) {
 // Buscar e agrupar previsão semanal
 async function buscarPrevisaoSemanal(lat, lon) {
     try {
-        const resposta = await fetch(`http://localhost:3000/previsao?lat=${lat}&lon=${lon}`);
+        const resposta = await fetch(`https://seu-portfolio.onrender.com/api/previsao?lat=${lat}&lon=${lon}`);
         const listaDias = await resposta.json();
 
         // Sempre define o primeiro dia da lista como o destaque inicial (Hoje)
@@ -161,7 +160,7 @@ async function cliqueinoBotao() {
     caixa.innerHTML = `<div class="loading"><p>Buscando...</p><div class="spinner"></div></div>`;
 
     try {
-        const resposta = await fetch(`http://localhost:3000/clima?cidade=${cidade}`);
+        const resposta = await fetch(`https://seu-portfolio.onrender.com/api/clima?cidade=${cidade}`);
         if (!resposta.ok) throw new Error();
         const dados = await resposta.json();
 
@@ -195,7 +194,7 @@ async function sugerirRoupaIA() {
     local.textContent = "IA analisando o guarda-roupa...";
 
     try {
-        const res = await fetch("http://localhost:3000/sugerir", {
+        const res = await fetch("https://seu-portfolio.onrender.com/api/sugerir", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ clima: { cidade, temp, descricao: "atual" } })
