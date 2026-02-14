@@ -187,34 +187,38 @@ async function buscarPrevisaoSemanal(lat, lon) {
 }
 // 6. Clique no Botão
 async function cliqueinoBotao() {
-    const cidade = document.querySelector(".input-cidade").value.trim();
-    if (!cidade) return;
+    // 1. Pegamos o valor e limpamos espaços extras
+    const cidadeInput = document.querySelector(".input-cidade").value.trim();
+    if (!cidadeInput) return;
+
+    // 2. IMPORTANTE: Transformamos "Simão Dias" em algo que a URL entenda com encodeURIComponent
+    const cidadeFormatada = encodeURIComponent(cidadeInput);
 
     const aviso = document.querySelector(".loading-aviso");
     if (aviso) aviso.style.display = "block"; 
 
     try {
-        const url = `https://meu-portfolio-backend-wgmj.onrender.com/clima?cidade=${cidade}`;
-        console.log("Tentando acessar:", url);
+        // Usamos a URL sem o /api, já que você confirmou que as rotas estão diretas
+        const url = `https://meu-portfolio-backend-wgmj.onrender.com/clima?cidade=${cidadeFormatada}`;
+        
+        console.log("Chamando servidor:", url);
 
-        // --- CORREÇÃO AQUI: Faltava o FETCH ---
+        // O FETCH que faltava (a ignição do projeto)
         const res = await fetch(url);
         
-        if (!res.ok) throw new Error("Cidade não encontrada ou erro no servidor");
+        if (!res.ok) {
+            // Se o servidor der 404, vamos ver o porquê aqui
+            console.error("Servidor respondeu com erro:", res.status);
+            throw new Error("Não encontrado");
+        }
 
         const dados = await res.json();
-        // ---------------------------------------
+        
+        // Salvamos o nome da cidade globalmente para o topo não sumir
+        cidadeAtualNome = dados.name || cidadeInput; 
 
-        // Se o backend retornou erro mas com status 200
-        if (dados.erro) throw new Error();
-
-        // Salva o nome da cidade para não sumir depois
-        cidadeAtualNome = dados.name || cidade; 
-
-        // Atualiza a tela
         atualizarPainelPrincipal(dados);
         
-        // Busca a previsão semanal
         if (dados.coord) {
             await buscarPrevisaoSemanal(dados.coord.lat, dados.coord.lon);
         }
@@ -223,8 +227,7 @@ async function cliqueinoBotao() {
 
     } catch (e) { 
         if (aviso) aviso.style.display = "none";
-        // REMOVIDO O ALERT: Agora ele apenas avisa no console para não travar a tela
-        console.warn("Erro na busca:", e.message);
+        console.warn("Erro ao processar busca. Verifique se o backend na Render está 'Live'.");
     }
 }
 
