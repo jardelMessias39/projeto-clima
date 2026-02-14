@@ -174,7 +174,7 @@ function renderizarCards() {
 // 5. Busca Previsão Semanal
 async function buscarPrevisaoSemanal(lat, lon) {
     try {
-        const res = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/api/previsao?lat=${lat}&lon=${lon}`);
+      const res = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/previsao?lat=${lat}&lon=${lon}`);
         const dados = await res.json();
         
         // Substitui a lista antiga pela nova do backend
@@ -194,7 +194,7 @@ async function cliqueinoBotao() {
     if (aviso) aviso.style.display = "block"; // Mostra o aviso
 
     try {
-        const res = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/api/clima?cidade=${cidade}`);
+       const res = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/clima?cidade=${cidade}`);
         const dados = await res.json();
         
         if (dados.erro) throw new Error();
