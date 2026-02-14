@@ -191,26 +191,40 @@ async function cliqueinoBotao() {
     if (!cidade) return;
 
     const aviso = document.querySelector(".loading-aviso");
-    if (aviso) aviso.style.display = "block"; // Mostra o aviso
+    if (aviso) aviso.style.display = "block"; 
 
     try {
-       const url = `https://meu-portfolio-backend-wgmj.onrender.com/clima?cidade=${cidade}`;
-        console.log("Tentando acessar:", url); // Isso vai aparecer no seu F12
-        const dados = await res.json();
+        const url = `https://meu-portfolio-backend-wgmj.onrender.com/clima?cidade=${cidade}`;
+        console.log("Tentando acessar:", url);
+
+        // --- CORREÇÃO AQUI: Faltava o FETCH ---
+        const res = await fetch(url);
         
+        if (!res.ok) throw new Error("Cidade não encontrada ou erro no servidor");
+
+        const dados = await res.json();
+        // ---------------------------------------
+
+        // Se o backend retornou erro mas com status 200
         if (dados.erro) throw new Error();
 
-        // GARANTIA: Se o backend não mandou o nome da cidade no objeto de busca, 
-        // usamos o nome que o usuário digitou ou o que o backend retornou
+        // Salva o nome da cidade para não sumir depois
         cidadeAtualNome = dados.name || cidade; 
 
+        // Atualiza a tela
         atualizarPainelPrincipal(dados);
-        await buscarPrevisaoSemanal(dados.coord.lat, dados.coord.lon);
         
-        if (aviso) aviso.style.display = "none"; // Esconde após carregar
+        // Busca a previsão semanal
+        if (dados.coord) {
+            await buscarPrevisaoSemanal(dados.coord.lat, dados.coord.lon);
+        }
+        
+        if (aviso) aviso.style.display = "none"; 
+
     } catch (e) { 
         if (aviso) aviso.style.display = "none";
-        alert("Cidade não encontrada ou servidor offline."); 
+        // REMOVIDO O ALERT: Agora ele apenas avisa no console para não travar a tela
+        console.warn("Erro na busca:", e.message);
     }
 }
 
