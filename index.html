@@ -4,28 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="path/para/seu/favicon.ico" type="image/x-icon" />
-   <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css">
     <title>Previsão do Tempo</title>
 </head>
 <body>
-   <div class="caixa-maior">
-    <div class="caixa-input">
-        <input class="input-cidade" placeholder="Digite a cidade">
-        <button class="botao" onclick="detectarVoz()">
-            <img src="./img/icons8-gravador-de-voz-50.png" class="img-botao"/>
-        </button>
-        <button class="botao" onclick="cliqueinoBotao()">
-            <img src="./img/icons8-pesquisar-50.png" class="img-botao"/>
-        </button>
-    </div>
-    <h2 class="nome-cidade"></h2>
-<h3 class="dia-destaque"></h3>
-
-    <div class="caixa-media">
+    <div id="container-principal" style="display: flex; justify-content: center; align-items: center; width: 100%; min-height: 100vh;">
+        
+        <div id="launcher" style="text-align: center; cursor: pointer;">
+            <img src="img/icons.png" alt="Abrir" onclick="abrirProjeto()" style="width: 200px; transition: 0.3s;">
+            <p style="color: white; margin-top: 15px; font-family: sans-serif;">Clique no ícone para iniciar</p>
         </div>
-</div>
 
+        <div class="caixa-maior" id="conteudo-projeto" style="display: none; opacity: 0;">
+            <div class="caixa-input">
+                <input class="input-cidade" placeholder="Digite a cidade">
+                <button class="botao" onclick="detectarVoz()">
+                    <img src="./img/icons8-gravador-de-voz-50.png" class="img-botao"/>
+                </button>
+                <button class="botao" onclick="cliqueinoBotao()">
+                    <img src="./img/icons8-pesquisar-50.png" class="img-botao"/>
+                </button>
+            </div>
+            <p class="loading-aviso">Iniciando servidor ... isso pode levar 30 segundos .</p>
+            <h2 class="nome-cidade"></h2>
+            <h3 class="dia-destaque"></h3>
+
+            <div class="caixa-media">
+                <p class="temp"></p>
+                <p class="descricao-clima"></p>
+                <img class="icone" src="">
+
+                <div class="detalhes"></div>
+
+                <button class="botao-ia" onclick="sugerirRoupaIA()">✨ Dica da IA</button>
+                <p class="resposta-ia">O que vestir hoje?</p>
+
+                <div class="previsao-semanal"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts.js"></script>
 </body>
-
-<script src="scripts.js"></script>
 </html>

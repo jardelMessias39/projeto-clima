@@ -1,7 +1,23 @@
 let listaCompletaGlobal = [];
 let climaDeHoje = null;
 let somAmbiente = null;
+let cidadeAtualNome = ""; // Variável global para não perder o nome da cidade
 
+// 2. Tradução Senior para PT-BR
+function formatarDiaPT(dataTexto) {
+    if (!dataTexto) return "---";
+    // Adicionamos o T12:00:00 para evitar que o fuso horário mude o dia
+    const data = new Date(dataTexto + 'T12:00:00');
+    return data.toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase().replace('.', '');
+}
+
+// 1. Função para abrir o projeto e destravar áudio
+function abrirProjeto() {
+    document.getElementById('launcher').style.display = 'none';
+    const projeto = document.getElementById('conteudo-projeto');
+    projeto.style.display = 'flex';
+    setTimeout(() => { projeto.style.opacity = '1'; }, 10);
+}
 // 1. Atualizar fundo da caixa conforme clima
 function atualizarFundoCaixa(climaPrincipal) {
     const caixaMedia = document.querySelector(".caixa-media");
@@ -52,132 +68,166 @@ function tocarSomAmbienteComCodigo(weather) {
 
 // 3. Atualizar painel principal (Agora com verificações de segurança)
 function atualizarPainelPrincipal(dados) {
+    // 1. Mapeamento de elementos (Baseado no seu GitHub)
     const elementos = {
-        cidade: document.querySelector(".cidade") || document.querySelector(".nome-cidade"),
+        cidade: document.querySelector(".nome-cidade"),
         temp: document.querySelector(".temp"),
         desc: document.querySelector(".descricao-clima"),
         icone: document.querySelector(".icone"),
-        umidade: document.querySelector(".umidade"),
-        pressao: document.querySelector(".pressao"),
-        vento: document.querySelector(".vento"),
-        destaque: document.querySelector(".dia-destaque")
+        destaque: document.querySelector(".dia-destaque"),
+        detalhes: document.querySelector(".detalhes")
     };
 
-    if (elementos.cidade) elementos.cidade.textContent = dados.name || dados.cidade || "Localização";
-    if (elementos.destaque) elementos.destaque.textContent = dados.dataLabel || "HOJE";
+    // 2. Lógica do Nome da Cidade (Não deixa sumir ao clicar no card)
+    if (dados.name) {
+        cidadeAtualNome = dados.name; // Atualiza a global se for uma busca nova
+    }
+    if (elementos.cidade) {
+        elementos.cidade.textContent = cidadeAtualNome;
+    }
+
+    // 3. Lógica do Nome do Dia (O que você pediu do GitHub)
+    // Se vier do card, usa o dataLabel (Ex: TER). Se for busca nova, usa "HOJE".
+    if (elementos.destaque) {
+        elementos.destaque.textContent = dados.dataLabel || "HOJE";
+    }
     
+    // 4. Temperatura e Ícone
     const tempValue = Math.round(dados.main?.temp || dados.temp_max || 0);
     if (elementos.temp) elementos.temp.textContent = `${tempValue}°C`;
-
+    
     const desc = (dados.weather?.[0].description || dados.climaPrincipal || '').toUpperCase();
     if (elementos.desc) elementos.desc.textContent = desc;
 
-    const icone = dados.weather?.[0].icon || dados.icon || '01d';
-    if (elementos.icone) elementos.icone.src = `https://openweathermap.org/img/wn/${icone}@4x.png`;
-
-    // Detalhes extras (SÓ PREENCHE SE EXISTIR NO HTML)
-    if (elementos.umidade) {
-        const u = dados.main?.humidity ?? dados.umidade ?? 0;
-        elementos.umidade.textContent = `💧 Umidade: ${u}%`;
-    }
-    if (elementos.vento) {
-        const v = Math.round(dados.wind?.speed ?? dados.vento ?? 0);
-        elementos.vento.textContent = `💨 Vento: ${v} m/s`;
+    const iconeCodigo = dados.weather?.[0].icon || dados.icon || '01d';
+    if (elementos.icone) {
+        elementos.icone.style.display = "block";
+        elementos.icone.src = `https://openweathermap.org/img/wn/${iconeCodigo}@4x.png`;
     }
 
+    // 5. Detalhes (Vento, Umidade, Sensação) - Corrigindo o NaN
+    if (elementos.detalhes) {
+        const umidade = dados.main?.humidity ?? dados.umidade ?? 0;
+        const vento = Math.round(dados.wind?.speed ?? dados.vento ?? 0);
+        const sensacao = Math.round(dados.main?.feels_like ?? dados.sensacao ?? tempValue);
+        const pressao = dados.main?.pressure ?? dados.pressao ?? 1012;
+
+        elementos.detalhes.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; font-size: 14px; margin-top: 10px;">
+                <p>💧 Umidade: ${umidade}%</p>
+                <p>💨 Vento: ${vento} m/s</p>
+                <p>🌡️ Sensação: ${sensacao}°C</p>
+                <p>⏲️ Pressão: ${pressao} hPa</p>
+            </div>
+        `;
+    }
+
+    // 6. Fundo e Som
     atualizarFundoCaixa(dados.weather?.[0].main || dados.climaPrincipal);
-    tocarSomAmbienteComCodigo(dados.weather);
+    tocarSomAmbienteComCodigo(dados.weather || [{id: 800}]);
 }
-
 // 4. Renderizar os cards debaixo
 function renderizarCards() {
     const container = document.querySelector(".previsao-semanal");
-    if (!container || !climaDeHoje) return;
-
+    if (!container) return;
     container.innerHTML = "";
-    const dataNoDestaque = climaDeHoje.fullDate; 
-    const diasParaExibir = listaCompletaGlobal.filter(dia => dia.fullDate !== dataNoDestaque);
 
-    diasParaExibir.slice(0, 6).forEach(dia => {
+    if (!listaCompletaGlobal || listaCompletaGlobal.length === 0) return;
+
+    // Filtro: Esconde o dia que está no topo
+    const dataNoDestaque = climaDeHoje ? climaDeHoje.fullDate : null;
+    const diasParaExibir = listaCompletaGlobal.filter(item => item.fullDate !== dataNoDestaque);
+
+    diasParaExibir.slice(0, 5).forEach(dia => {
         const card = document.createElement("div");
         card.className = "card-previsao";
+        
+        const diaNome = formatarDiaPT(dia.fullDate);
+        const probChuva = dia.chuva ?? dia.pop ?? 0;
+
         card.innerHTML = `
-            <h4>${dia.dataLabel}</h4>
-            <img src="https://openweathermap.org/img/wn/${dia.icon}@2x.png">
-            <p class="card-temp"><strong>${Math.round(dia.temp_max)}°</strong></p>
-            <p class="card-chuva">💧${Math.round(dia.chuva * 100)}%</p>
+            <h4>${diaNome}</h4>
+            <img src="https://openweathermap.org/img/wn/${dia.icon || '01d'}@2x.png">
+            <p class="card-temp"><strong>${Math.round(dia.temp_max || 0)}°</strong></p>
+            <p class="card-chuva">💧${Math.round(probChuva * 100)}%</p>
         `;
+        
         card.onclick = () => {
-            climaDeHoje = dia; 
+            climaDeHoje = dia; // O card clicado vira o destaque
             atualizarPainelPrincipal(dia);
-            renderizarCards();
+            renderizarCards(); // Re-renderiza para o dia antigo "descer" e o novo "sumir"
         };
+        
         container.appendChild(card);
     });
 }
+
 
 // 5. Busca Previsão Semanal
 async function buscarPrevisaoSemanal(lat, lon) {
     try {
         const res = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/api/previsao?lat=${lat}&lon=${lon}`);
-        listaCompletaGlobal = await res.json();
-        if (!climaDeHoje) climaDeHoje = listaCompletaGlobal[0];
-        renderizarCards(); 
-    } catch (e) { console.error("Erro na previsão:", e); }
+        const dados = await res.json();
+        
+        // Substitui a lista antiga pela nova do backend
+        listaCompletaGlobal = dados; 
+        
+        renderizarCards();
+    } catch (e) {
+        console.error("Erro na previsão:", e);
+    }
 }
-
 // 6. Clique no Botão
 async function cliqueinoBotao() {
-  const cidade = document.querySelector(".input-cidade").value.replace(/\./g, "").trim();
-    const caixa = document.querySelector(".caixa-media");
+    const cidade = document.querySelector(".input-cidade").value.trim();
     if (!cidade) return;
 
-    caixa.innerHTML = `<div class="loading"><p>Buscando...</p><div class="spinner"></div></div>`;
+    const aviso = document.querySelector(".loading-aviso");
+    if (aviso) aviso.style.display = "block"; // Mostra o aviso
 
     try {
         const res = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/api/clima?cidade=${cidade}`);
         const dados = await res.json();
-        if (dados.erro || !dados.coord) throw new Error();
+        
+        if (dados.erro) throw new Error();
 
-        // Monta o HTML interno da caixa para o CSS aplicar os estilos
-        caixa.innerHTML = `
-            <h2 class="cidade">${dados.name}</h2>
-            <p class="temp">${Math.round(dados.main.temp)}°C</p>
-            <p class="descricao-clima">${dados.weather[0].description}</p>
-            <img class="icone" src="https://openweathermap.org/img/wn/${dados.weather[0].icon}@2x.png">
-            <div class="detalhes">
-                <p class="umidade">💧 Umidade: ${dados.main.humidity}%</p>
-                <p class="vento">💨 Vento: ${Math.round(dados.wind.speed)} m/s</p>
-            </div>
-            <button class="botao-ia" onclick="sugerirRoupaIA()">✨ Dica da IA</button>
-            <p class="resposta-ia">O que vestir hoje?</p>
-            <div class="previsao-semanal"></div>
-        `;
+        // GARANTIA: Se o backend não mandou o nome da cidade no objeto de busca, 
+        // usamos o nome que o usuário digitou ou o que o backend retornou
+        cidadeAtualNome = dados.name || cidade; 
 
-        climaDeHoje = null;
         atualizarPainelPrincipal(dados);
         await buscarPrevisaoSemanal(dados.coord.lat, dados.coord.lon);
-    } catch (e) {
-        caixa.innerHTML = `<p>Cidade não encontrada.</p>`;
+        
+        if (aviso) aviso.style.display = "none"; // Esconde após carregar
+    } catch (e) { 
+        if (aviso) aviso.style.display = "none";
+        alert("Cidade não encontrada ou servidor offline."); 
     }
 }
 
 // 7. IA e Eventos
 async function sugerirRoupaIA() {
-    const local = document.querySelector(".resposta-ia");
-    const cidade = document.querySelector(".cidade")?.textContent || "sua cidade";
-    const temp = document.querySelector(".temp")?.textContent || "20°C";
-    local.textContent = "IA analisando...";
+    const localIA = document.querySelector(".resposta-ia");
+    localIA.style.overflowY = "auto";
+    localIA.style.maxHeight = "100px"; // Limita a altura para não empurrar os cards
+    localIA.style.paddingRight = "5px";
+    localIA.textContent = "IA analisando o clima...";
 
     try {
         const res = await fetch("https://meu-portfolio-backend-wgmj.onrender.com/api/sugerir", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ clima: { cidade, temp, descricao: "atual" } })
+            body: JSON.stringify({ 
+                clima: { 
+                    cidade: cidadeAtualNome, 
+                    temp: document.querySelector(".temp").textContent,
+                    descricao: document.querySelector(".descricao-clima").textContent
+                } 
+            })
         });
         const d = await res.json();
-        local.textContent = d.sugestao;
-    } catch { local.textContent = "Erro na IA."; }
+        localIA.textContent = d.sugestao;
+    } catch { localIA.textContent = "Erro ao obter dica da IA."; }
 }
 
 function detectarVoz() {
@@ -187,10 +237,10 @@ function detectarVoz() {
     rec.lang = 'pt-BR';
     rec.onstart = () => document.querySelector(".input-cidade").placeholder = "Ouvindo...";
     rec.onresult = (e) => {
-        document.querySelector(".input-cidade").value = e.results[0][0].transcript;
-        cliqueinoBotao();
+        // Remove o ponto final que a API de voz coloca
+        const transcricao = e.results[0][0].transcript.replace(/\./g, "").trim();
+        document.querySelector(".input-cidade").value = transcricao;
+        cliqueinoBotao(); // Agora a busca vai limpa para o servidor
     };
     rec.start();
 }
-
-document.querySelector(".input-cidade").addEventListener("keyup", e => { if (e.key === "Enter") cliqueinoBotao(); });
