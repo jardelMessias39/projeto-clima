@@ -13,10 +13,19 @@ function formatarDiaPT(dataTexto) {
 
 // 1. Função para abrir o projeto e destravar áudio
 function abrirProjeto() {
-    document.getElementById('launcher').style.display = 'none';
+    console.log("Abrindo o projeto..."); // Adicione esse log para testar
+    const launcher = document.getElementById('launcher');
     const projeto = document.getElementById('conteudo-projeto');
-    projeto.style.display = 'flex';
-    setTimeout(() => { projeto.style.opacity = '1'; }, 10);
+
+    if (launcher) launcher.style.display = 'none';
+    
+    if (projeto) {
+        projeto.style.display = 'flex';
+        // Pequeno delay para a transição de opacidade funcionar
+        setTimeout(() => { 
+            projeto.style.opacity = '1'; 
+        }, 10);
+    }
 }
 // 1. Atualizar fundo da caixa conforme clima
 function atualizarFundoCaixa(climaPrincipal) {
