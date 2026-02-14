@@ -12,8 +12,8 @@ function formatarDiaPT(dataTexto) {
 }
 
 // 1. Função para abrir o projeto e destravar áudio
-function abrirProjeto() {
-    console.log("Abrindo o projeto..."); // Adicione esse log para testar
+window.abrirProjeto = function() {
+    console.log("Botão clicado!");
     const launcher = document.getElementById('launcher');
     const projeto = document.getElementById('conteudo-projeto');
 
@@ -21,12 +21,11 @@ function abrirProjeto() {
     
     if (projeto) {
         projeto.style.display = 'flex';
-        // Pequeno delay para a transição de opacidade funcionar
         setTimeout(() => { 
             projeto.style.opacity = '1'; 
         }, 10);
     }
-}
+};
 // 1. Atualizar fundo da caixa conforme clima
 function atualizarFundoCaixa(climaPrincipal) {
     const caixaMedia = document.querySelector(".caixa-media");
