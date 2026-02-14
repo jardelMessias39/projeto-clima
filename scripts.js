@@ -194,7 +194,8 @@ async function cliqueinoBotao() {
     if (aviso) aviso.style.display = "block"; // Mostra o aviso
 
     try {
-       const res = await fetch(`https://meu-portfolio-backend-wgmj.onrender.com/clima?cidade=${cidade}`);
+       const url = `https://meu-portfolio-backend-wgmj.onrender.com/clima?cidade=${cidade}`;
+        console.log("Tentando acessar:", url); // Isso vai aparecer no seu F12
         const dados = await res.json();
         
         if (dados.erro) throw new Error();
