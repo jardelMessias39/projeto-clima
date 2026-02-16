@@ -140,7 +140,7 @@ function atualizarPainelPrincipal(dados) {
 }
 
 
-function normalizarDadosClima(dados) {
+function normalizarDadosClima(dados, fullDate = null, dataLabel = null) {
     return {
         nome: dados.name,
         temp: dados.main?.temp ?? dados.temp_max ?? 0,
@@ -150,9 +150,12 @@ function normalizarDadosClima(dados) {
         umidade: dados.main?.humidity ?? dados.umidade ?? 0,
         vento: dados.wind?.speed ?? dados.vento ?? 0,
         pressao: dados.main?.pressure ?? dados.pressao ?? 0,
-        climaPrincipal: dados.weather?.[0]?.main ?? dados.climaPrincipal ?? "Clear"
+        climaPrincipal: dados.weather?.[0]?.main ?? dados.climaPrincipal ?? "Clear",
+        fullDate: fullDate,       // necessário para o filtro do destaque
+        dataLabel: dataLabel      // nome do dia em PT-BR
     }
 }
+
 
 // 4. Renderizar os cards debaixo
 function renderizarCards() {
@@ -202,8 +205,9 @@ async function buscarPrevisaoSemanal(lat, lon) {
 
         const dados = await res.json();
 
-      listaCompletaGlobal = dados.map(normalizarDadosClima);
-
+      listaCompletaGlobal = dados.map(dia => 
+    normalizarDadosClima(dia, dia.fullDate, dia.dataLabel)
+);
 
         // Destaque inicial
         if (!climaDeHoje && listaCompletaGlobal.length > 0) {
