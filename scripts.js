@@ -77,57 +77,55 @@ function tocarSomAmbienteComCodigo(weather) {
 // 3. Atualizar painel principal (Agora com verificações de segurança)
 function atualizarPainelPrincipal(dados) {
     // 1. Mapeamento de elementos (Baseado no seu GitHub)
-    const elementos = {
-        cidade: document.querySelector(".nome-cidade"),
-        temp: document.querySelector(".temp"),
-        desc: document.querySelector(".descricao-clima"),
-        icone: document.querySelector(".icone"),
-        destaque: document.querySelector(".dia-destaque"),
-        detalhes: document.querySelector(".detalhes")
-    };
+   // 1. Pegamos os elementos (Mantenha como você já fez)
+const elementos = {
+    cidade: document.querySelector(".nome-cidade"),
+    temp: document.querySelector(".temp"),
+    desc: document.querySelector(".descricao-clima"),
+    icone: document.querySelector(".icone"),
+    destaque: document.querySelector(".dia-destaque"),
+    detalhes: document.querySelector(".detalhes") // Certifique-se que essa classe existe no HTML
+};
 
-    // 2. Lógica do Nome da Cidade (Não deixa sumir ao clicar no card)
-    if (dados.name) {
-        cidadeAtualNome = dados.name; // Atualiza a global se for uma busca nova
-    }
-    if (elementos.cidade) {
-        elementos.cidade.textContent = cidadeAtualNome;
-    }
+// 2. Lógica do Nome da Cidade (Perfeito!)
+if (dados.name) {
+    cidadeAtualNome = dados.name; 
+}
+if (elementos.cidade) {
+    elementos.cidade.textContent = cidadeAtualNome;
+}
 
-    // 3. Lógica do Nome do Dia (O que você pediu do GitHub)
-    // Se vier do card, usa o dataLabel (Ex: TER). Se for busca nova, usa "HOJE".
-    if (elementos.destaque) {
-        elementos.destaque.textContent = dados.dataLabel || "HOJE";
-    }
-    
-    // 4. Temperatura e Ícone
-    const tempValue = Math.round(dados.main?.temp || dados.temp_max || 0);
-    if (elementos.temp) elementos.temp.textContent = `${tempValue}°C`;
-    
-    const desc = (dados.weather?.[0].description || dados.climaPrincipal || '').toUpperCase();
-    if (elementos.desc) elementos.desc.textContent = desc;
+// 3. Lógica do Nome do Dia 
+if (elementos.destaque) {
+    elementos.destaque.textContent = dados.dataLabel || "HOJE";
+}
 
-    const iconeCodigo = dados.weather?.[0].icon || dados.icon || '01d';
-    if (elementos.icone) {
-        elementos.icone.style.display = "block";
-        elementos.icone.src = `https://openweathermap.org/img/wn/${iconeCodigo}@4x.png`;
-    }
+// 4. Temperatura e Ícone
+const tempValue = Math.round(dados.main?.temp || dados.temp_max || 0);
+if (elementos.temp) elementos.temp.textContent = `${tempValue}°C`;
 
+const desc = (dados.weather?.[0].description || dados.climaPrincipal || '').toUpperCase();
+if (elementos.desc) elementos.desc.textContent = desc;
+
+const iconeCodigo = dados.weather?.[0].icon || dados.icon || '01d';
+if (elementos.icone) {
+    elementos.icone.style.display = "block";
+    elementos.icone.src = `https://openweathermap.org/img/wn/${iconeCodigo}@4x.png`;
+}
     // 5. Detalhes (Vento, Umidade, Sensação) - Corrigindo o NaN
     if (elementos.detalhes) {
-        const umidade = dados.main?.humidity ?? dados.umidade ?? 0;
-        const vento = Math.round(dados.wind?.speed ?? dados.vento ?? 0);
-        const sensacao = Math.round(dados.main?.feels_like ?? dados.sensacao ?? tempValue);
-        const pressao = dados.main?.pressure ?? dados.pressao ?? 1012;
+    // Busca inicial usa 'main.feels_like', o Card usa 'sensacao' (que vem do seu backend)
+    const sensacao = Math.round(dados.main?.feels_like || dados.sensacao || 0);
+    const umidade = dados.main?.humidity || dados.umidade || 0;
+    const vento = dados.wind?.speed || dados.vento || 0;
+    const pressao = dados.main?.pressure || dados.pressao || 0;
 
-        elementos.detalhes.innerHTML = `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; font-size: 14px; margin-top: 10px;">
-                <p>💧 Umidade: ${umidade}%</p>
-                <p>💨 Vento: ${vento} m/s</p>
-                <p>🌡️ Sensação: ${sensacao}°C</p>
-                <p>⏲️ Pressão: ${pressao} hPa</p>
-            </div>
-        `;
+    elementos.detalhes.innerHTML = `
+        <p>Sensação: ${sensacao}°C</p>
+        <p>Umidade: ${umidade}%</p>
+        <p>Vento: ${Math.round(vento * 3.6)} km/h</p>
+        <p>Pressão: ${pressao} hPa</p>
+    `;
     }
 
     // 6. Fundo e Som
