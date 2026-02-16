@@ -99,6 +99,8 @@ if (elementos.cidade) {
 if (elementos.destaque) {
     if (dados.dataLabel) {
         elementos.destaque.textContent = dados.dataLabel;
+    } else if (dados.fullDate) {
+        elementos.destaque.textContent = formatarDiaPT(dados.fullDate);
     } else {
         const hoje = new Date();
         elementos.destaque.textContent =
@@ -160,32 +162,42 @@ function normalizarDadosClima(dados) {
 function renderizarCards() {
     const container = document.querySelector(".previsao-semanal");
     if (!container) return;
-
     container.innerHTML = "";
 
+    if (!listaCompletaGlobal || listaCompletaGlobal.length === 0) return;
+
     listaCompletaGlobal.forEach(dia => {
-        if (climaDeHoje && dia.fullDate === climaDeHoje.fullDate) {
-            return; // pula o destaque
-        }
+        // Pula o destaque atual
+        if (climaDeHoje && dia.fullDate === climaDeHoje.fullDate) return;
 
         const card = document.createElement("div");
         card.className = "card-previsao";
 
+        const diaNome = dia.dataLabel || formatarDiaPT(dia.fullDate);
+        const probChuva = dia.chuva ?? dia.pop ?? 0;
+
         card.innerHTML = `
-            <h4>${dia.dataLabel}</h4>
-            <img src="https://openweathermap.org/img/wn/${dia.icon}@2x.png">
-            <p><strong>${Math.round(dia.temp_max)}°</strong></p>
+            <h4>${diaNome}</h4>
+            <img src="https://openweathermap.org/img/wn/${dia.icon || '01d'}@2x.png">
+            <p class="card-temp"><strong>${Math.round(dia.temp_max || 0)}°</strong></p>
+            <p class="card-chuva">💧${Math.round(probChuva * 100)}%</p>
         `;
 
         card.onclick = () => {
+            // Troca o destaque
+            const antigoDestaque = climaDeHoje;
             climaDeHoje = dia;
+
             atualizarPainelPrincipal(dia);
+
+            // Se quiser, podemos reatribuir antigoDestaque à lista, mas como filtramos, ele já volta
             renderizarCards();
         };
 
         container.appendChild(card);
     });
 }
+
 
 
 
