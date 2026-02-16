@@ -174,7 +174,12 @@ function renderizarCards() {
 // 5. Busca Previsão Semanal
 async function buscarPrevisaoSemanal(lat, lon) {
     try {
-      const url = `https://meu-portfolio-backend-wgmj.onrender.com/api/previsao?lat=${lat}&lon=${lon}`;
+   const url = `https://meu-portfolio-backend-wgmj.onrender.com/api/previsao?lat=${lat}&lon=${lon}`;
+        const res = await fetch(url);
+        if (!res.ok) {
+            console.error("Erro ao buscar previsão semanal:", res.status);
+            return;
+        }
         const dados = await res.json();
         
         // Substitui a lista antiga pela nova do backend
