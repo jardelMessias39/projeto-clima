@@ -132,6 +132,21 @@ if (elementos.icone) {
     atualizarFundoCaixa(dados.weather?.[0].main || dados.climaPrincipal);
     tocarSomAmbienteComCodigo(dados.weather || [{id: 800}]);
 }
+
+function normalizarDadosClima(dados) {
+    return {
+        nome: dados.name,
+        temp: dados.main?.temp ?? dados.temp_max ?? 0,
+        descricao: dados.weather?.[0]?.description ?? dados.climaPrincipal ?? "",
+        icone: dados.weather?.[0]?.icon ?? dados.icon ?? "01d",
+        sensacao: dados.main?.feels_like ?? dados.sensacao ?? 0,
+        umidade: dados.main?.humidity ?? dados.umidade ?? 0,
+        vento: dados.wind?.speed ?? dados.vento ?? 0,
+        pressao: dados.main?.pressure ?? dados.pressao ?? 0,
+        climaPrincipal: dados.weather?.[0]?.main ?? dados.climaPrincipal ?? "Clear"
+    }
+}
+
 // 4. Renderizar os cards debaixo
 function renderizarCards() {
     const container = document.querySelector(".previsao-semanal");
