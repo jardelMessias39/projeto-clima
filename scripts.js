@@ -97,8 +97,17 @@ if (elementos.cidade) {
 
 // 3. Lógica do Nome do Dia 
 if (elementos.destaque) {
-    elementos.destaque.textContent = dados.dataLabel || "HOJE";
+    if (dados.dataLabel) {
+        elementos.destaque.textContent = dados.dataLabel;
+    } else {
+        const hoje = new Date();
+        elementos.destaque.textContent =
+            hoje.toLocaleDateString("pt-BR", { weekday: "short" })
+                .toUpperCase()
+                .replace(".", "");
+    }
 }
+
 
 // 4. Temperatura e Ícone
 const tempValue = Math.round(dados.main?.temp || dados.temp_max || 0);
@@ -151,37 +160,33 @@ function normalizarDadosClima(dados) {
 function renderizarCards() {
     const container = document.querySelector(".previsao-semanal");
     if (!container) return;
+
     container.innerHTML = "";
 
-    if (!listaCompletaGlobal || listaCompletaGlobal.length === 0) return;
+    listaCompletaGlobal.forEach(dia => {
+        if (climaDeHoje && dia.fullDate === climaDeHoje.fullDate) {
+            return; // pula o destaque
+        }
 
-    // Filtro: Esconde o dia que está no topo
-    const dataNoDestaque = climaDeHoje ? climaDeHoje.fullDate : null;
-    const diasParaExibir = listaCompletaGlobal.filter(item => item.fullDate !== dataNoDestaque);
-
-    diasParaExibir.slice(0, 5).forEach(dia => {
         const card = document.createElement("div");
         card.className = "card-previsao";
-        
-        const diaNome = formatarDiaPT(dia.fullDate);
-        const probChuva = dia.chuva ?? dia.pop ?? 0;
 
         card.innerHTML = `
-            <h4>${diaNome}</h4>
-            <img src="https://openweathermap.org/img/wn/${dia.icon || '01d'}@2x.png">
-            <p class="card-temp"><strong>${Math.round(dia.temp_max || 0)}°</strong></p>
-            <p class="card-chuva">💧${Math.round(probChuva * 100)}%</p>
+            <h4>${dia.dataLabel}</h4>
+            <img src="https://openweathermap.org/img/wn/${dia.icon}@2x.png">
+            <p><strong>${Math.round(dia.temp_max)}°</strong></p>
         `;
-        
+
         card.onclick = () => {
-            climaDeHoje = dia; // O card clicado vira o destaque
+            climaDeHoje = dia;
             atualizarPainelPrincipal(dia);
-            renderizarCards(); // Re-renderiza para o dia antigo "descer" e o novo "sumir"
+            renderizarCards();
         };
-        
+
         container.appendChild(card);
     });
 }
+
 
 
 // 5. Busca Previsão Semanal
@@ -197,7 +202,9 @@ async function buscarPrevisaoSemanal(lat, lon) {
         
         // Substitui a lista antiga pela nova do backend
         listaCompletaGlobal = dados; 
-        
+        if (!climaDeHoje && listaCompletaGlobal.length > 0) {
+    climaDeHoje = listaCompletaGlobal[0];
+    }
         renderizarCards();
     } catch (e) {
         console.error("Erro na previsão:", e);
