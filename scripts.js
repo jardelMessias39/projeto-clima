@@ -1,7 +1,7 @@
-let listaCompletaGlobal = [];    // Sempre mantém todos os dias da previsão
-let climaDeHoje = null;          // Destaque principal
-let somAmbiente = null;          // Som ambiente do clima
-let cidadeAtualNome = "";        // Nome da cidade fixo no topo
+let listaCompletaGlobal = [];
+let climaDeHoje = null;
+let somAmbiente = null;
+let cidadeAtualNome = ""; // Variável global para não perder o nome da cidade
 
 // 2. Tradução Senior para PT-BR
 function formatarDiaPT(dataTexto) {
@@ -13,7 +13,7 @@ function formatarDiaPT(dataTexto) {
 
 // 1. Função para abrir o projeto e destravar áudio
 window.abrirProjeto = function() {
-  
+    console.log("Botão clicado!");
     const launcher = document.getElementById('launcher');
     const projeto = document.getElementById('conteudo-projeto');
 
@@ -44,7 +44,7 @@ function atualizarFundoCaixa(climaPrincipal) {
 
     const busca = temas[climaPrincipal] || 'weather,sky';
     const urlFoto = `https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?auto=format&fit=crop&w=1600&q=80`; 
-   
+    // Dica: Usei uma fixa de backup, mas se quiser a do Unsplash dinâmica:
     // const urlFoto = `https://source.unsplash.com/1600x900/?${busca}`;
     
     caixaMedia.style.backgroundImage = `url('${urlFoto}')`;
@@ -76,57 +76,67 @@ function tocarSomAmbienteComCodigo(weather) {
 
 // 3. Atualizar painel principal (Agora com verificações de segurança)
 function atualizarPainelPrincipal(dados) {
-    const elementos = {
-        cidade: document.querySelector(".nome-cidade"),
-        temp: document.querySelector(".temp"),
-        desc: document.querySelector(".descricao-clima"),
-        icone: document.querySelector(".icone"),
-        destaque: document.querySelector(".dia-destaque"),
-        detalhes: document.querySelector(".detalhes")
-    };
 
-    // Nome da cidade (mantém global)
+  
+
+    // 🔥 PEGAR ELEMENTOS
+    const cidadeEl = document.querySelector(".nome-cidade");
+    const diaEl = document.querySelector(".dia-destaque");
+    const tempEl = document.querySelector(".temp");
+    const descEl = document.querySelector(".descricao-clima");
+    const iconeEl = document.querySelector(".icone");
+    const detalhesEl = document.querySelector(".detalhes");
+
+    const hojeISO = new Date().toISOString().split("T")[0];
+
+const nomeDia = (dados.fullDate === hojeISO)
+    ? "HOJE"
+    : formatarDiaPT(dados.fullDate);
+
+document.querySelector(".dia-destaque").innerText = nomeDia;
+
+    // 🔥 GARANTIR NOME DA CIDADE
     if (dados.name) cidadeAtualNome = dados.name;
-    if (elementos.cidade) elementos.cidade.textContent = cidadeAtualNome;
+    if (cidadeEl) cidadeEl.textContent = cidadeAtualNome || "—";
 
-    // Dia da semana
-    if (elementos.destaque) {
-        if (dados.dataLabel) {
-            elementos.destaque.textContent = dados.dataLabel;
-        } else if (dados.fullDate) {
-            elementos.destaque.textContent = formatarDiaPT(dados.fullDate);
-        } else {
-            const hoje = new Date();
-            elementos.destaque.textContent =
-                hoje.toLocaleDateString("pt-BR", { weekday: "short" })
-                    .toUpperCase()
-                    .replace(".", "");
-        }
+    // 🔥 GARANTIR DIA
+    let diaTexto = "---";
+
+    if (dados.dataLabel) {
+        diaTexto = dados.dataLabel;
+    }
+    else if (dados.fullDate) {
+        diaTexto = formatarDiaPT(dados.fullDate);
+    }
+    else {
+        diaTexto = formatarDiaPT(new Date().toISOString().split("T")[0]);
     }
 
-    // Temperatura
+    if (diaEl) diaEl.textContent = diaTexto;
+
+    // 🔥 TEMPERATURA
     const tempValue = Math.round(dados.main?.temp || dados.temp_max || 0);
-    if (elementos.temp) elementos.temp.textContent = `${tempValue}°C`;
+    if (tempEl) tempEl.textContent = `${tempValue}°C`;
 
-    // Descrição
-    const desc = (dados.weather?.[0].description || dados.climaPrincipal || '').toUpperCase();
-    if (elementos.desc) elementos.desc.textContent = desc;
+    // 🔥 DESCRIÇÃO
+    const desc = (dados.weather?.[0]?.description || dados.climaPrincipal || "").toUpperCase();
+    if (descEl) descEl.textContent = desc;
 
-    // Ícone
-    const iconeCodigo = dados.weather?.[0].icon || dados.icon || '01d';
-    if (elementos.icone) {
-        elementos.icone.style.display = "block";
-        elementos.icone.src = `https://openweathermap.org/img/wn/${iconeCodigo}@4x.png`;
+    // 🔥 ÍCONE
+    const iconeCodigo = dados.weather?.[0]?.icon || dados.icon || "01d";
+    if (iconeEl) {
+        iconeEl.style.display = "block";
+        iconeEl.src = `https://openweathermap.org/img/wn/${iconeCodigo}@4x.png`;
     }
 
-    // Detalhes
-    if (elementos.detalhes) {
+    // 🔥 DETALHES
+    if (detalhesEl) {
         const sensacao = Math.round(dados.main?.feels_like || dados.sensacao || 0);
         const umidade = dados.main?.humidity || dados.umidade || 0;
         const vento = dados.wind?.speed || dados.vento || 0;
         const pressao = dados.main?.pressure || dados.pressao || 0;
 
-        elementos.detalhes.innerHTML = `
+        detalhesEl.innerHTML = `
             <p>Sensação: ${sensacao}°C</p>
             <p>Umidade: ${umidade}%</p>
             <p>Vento: ${Math.round(vento * 3.6)} km/h</p>
@@ -134,13 +144,12 @@ function atualizarPainelPrincipal(dados) {
         `;
     }
 
-    // Fundo e som
-    atualizarFundoCaixa(dados.weather?.[0].main || dados.climaPrincipal);
+    atualizarFundoCaixa(dados.weather?.[0]?.main || dados.climaPrincipal);
     tocarSomAmbienteComCodigo(dados.weather || [{id: 800}]);
 }
 
 
-function normalizarDadosClima(dados, fullDate = null, dataLabel = null) {
+function normalizarDadosClima(dados) {
     return {
         nome: dados.name,
         temp: dados.main?.temp ?? dados.temp_max ?? 0,
@@ -150,29 +159,28 @@ function normalizarDadosClima(dados, fullDate = null, dataLabel = null) {
         umidade: dados.main?.humidity ?? dados.umidade ?? 0,
         vento: dados.wind?.speed ?? dados.vento ?? 0,
         pressao: dados.main?.pressure ?? dados.pressao ?? 0,
-        climaPrincipal: dados.weather?.[0]?.main ?? dados.climaPrincipal ?? "Clear",
-        fullDate: fullDate,       // necessário para o filtro do destaque
-        dataLabel: dataLabel      // nome do dia em PT-BR
+        climaPrincipal: dados.weather?.[0]?.main ?? dados.climaPrincipal ?? "Clear"
     }
 }
-
 
 // 4. Renderizar os cards debaixo
 function renderizarCards() {
     const container = document.querySelector(".previsao-semanal");
     if (!container) return;
+
     container.innerHTML = "";
 
     if (!listaCompletaGlobal || listaCompletaGlobal.length === 0) return;
 
     listaCompletaGlobal.forEach(dia => {
-        // Pula o destaque atual
+
+        // não renderiza o destaque atual
         if (climaDeHoje && dia.fullDate === climaDeHoje.fullDate) return;
 
         const card = document.createElement("div");
         card.className = "card-previsao";
 
-        const diaNome = dia.dataLabel || formatarDiaPT(dia.fullDate);
+        const diaNome = formatarDiaPT(dia.fullDate);
         const probChuva = dia.chuva ?? dia.pop ?? 0;
 
         card.innerHTML = `
@@ -182,18 +190,15 @@ function renderizarCards() {
             <p class="card-chuva">💧${Math.round(probChuva * 100)}%</p>
         `;
 
-         card.onclick = () => {
-    climaDeHoje = normalizarDadosClima(dia);
-    atualizarPainelPrincipal(climaDeHoje);
-    renderizarCards();
-    };
-
+        card.onclick = () => {
+            climaDeHoje = dia;
+            atualizarPainelPrincipal(climaDeHoje);
+            renderizarCards();
+        };
 
         container.appendChild(card);
     });
 }
-
-
 
 
 // 5. Busca Previsão Semanal
@@ -201,21 +206,29 @@ async function buscarPrevisaoSemanal(lat, lon) {
     try {
         const url = `https://meu-portfolio-backend-wgmj.onrender.com/api/previsao?lat=${lat}&lon=${lon}`;
         const res = await fetch(url);
-        if (!res.ok) return console.error("Erro ao buscar previsão semanal:", res.status);
+
+        if (!res.ok) {
+            console.error("Erro ao buscar previsão semanal:", res.status);
+            return;
+        }
 
         const dados = await res.json();
 
-      listaCompletaGlobal = dados.map(dia => 
-    normalizarDadosClima(dia, dia.fullDate, dia.dataLabel)
-);
+        // recebe direto do backend
+        listaCompletaGlobal = dados;
 
-        // Destaque inicial
-        if (!climaDeHoje && listaCompletaGlobal.length > 0) {
-            climaDeHoje = listaCompletaGlobal[0];
-            atualizarPainelPrincipal(climaDeHoje);
+        // define o topo
+        if (listaCompletaGlobal.length > 0) {
+            const hojeISO = new Date().toISOString().split("T")[0];
+
+            climaDeHoje =
+                listaCompletaGlobal.find(d => d.fullDate === hojeISO)
+                || listaCompletaGlobal[0];
         }
 
+        atualizarPainelPrincipal(climaDeHoje); // importante
         renderizarCards();
+
     } catch (e) {
         console.error("Erro na previsão:", e);
     }
@@ -223,35 +236,52 @@ async function buscarPrevisaoSemanal(lat, lon) {
 
 // 6. Clique no Botão
 async function cliqueinoBotao() {
+    // 1. Pegamos o valor e limpamos espaços extras
     const cidadeInput = document.querySelector(".input-cidade").value.trim();
     if (!cidadeInput) return;
 
+    // 2. IMPORTANTE: Transformamos "Simão Dias" em algo que a URL entenda com encodeURIComponent
     const cidadeFormatada = encodeURIComponent(cidadeInput);
+
     const aviso = document.querySelector(".loading-aviso");
-    if (aviso) aviso.style.display = "block";
+    if (aviso) aviso.style.display = "block"; 
 
     try {
+        // Usamos a URL sem o /api, já que você confirmou que as rotas estão diretas
         const url = `https://meu-portfolio-backend-wgmj.onrender.com/api/clima?cidade=${cidadeFormatada}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Cidade não encontrada");
+        
+        console.log("Chamando servidor:", url);
 
-        const dadosBrutos = await res.json();
-        const dados = normalizarDadosClima(dadosBrutos);
-        cidadeAtualNome = dados.name || cidadeInput;
-        climaDeHoje = dados;
+        // O FETCH que faltava (a ignição do projeto)
+        const res = await fetch(url);
+        
+        if (!res.ok) {
+            // Se o servidor der 404, vamos ver o porquê aqui
+            console.error("Servidor respondeu com erro:", res.status);
+            throw new Error("Não encontrado");
+        }
+
+        const dados = await res.json();
+        // 🔥 INJETAR DATA NO CLIMA ATUAL
+        dados.fullDate = new Date().toISOString().split("T")[0];
+        dados.dataLabel = formatarDiaPT(dados.fullDate);
+                
+        // Salvamos o nome da cidade globalmente para o topo não sumir
+        cidadeAtualNome = dados.name || cidadeInput; 
 
         atualizarPainelPrincipal(dados);
+        
+        if (dados.coord) {
+            await buscarPrevisaoSemanal(dados.coord.lat, dados.coord.lon);
+        }
+        
+        if (aviso) aviso.style.display = "none"; 
 
-        if (dadosBrutos.coord) {
-    await buscarPrevisaoSemanal(dadosBrutos.coord.lat, dadosBrutos.coord.lon);
-}
+    } catch (e) { 
         if (aviso) aviso.style.display = "none";
-    } catch (e) {
-        if (aviso) aviso.style.display = "none";
-        console.warn("Erro ao processar busca:", e);
+        console.warn("Erro ao processar busca. Verifique se o backend na Render está 'Live'.");
     }
 }
-
 
 // 7. IA e Eventos
 async function sugerirRoupaIA() {

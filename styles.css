@@ -55,9 +55,9 @@ body {
     width: 6px;
 }
 /* A caixa que envolve o clima atual e os cards */
-..caixa-media {
+.caixa-media {
     width: 100%;
-    min-height: 550px; /* Aumentamos para caber tudo */
+    min-height: 550px;
     padding: 20px;
     border-radius: 20px;
     background-size: cover;
@@ -65,8 +65,12 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    overflow: hidden; /* Corta o que sobrar de forma elegante */
+    overflow: hidden;
+
+    position: relative;   /* 🔥 ESSENCIAL */
+    z-index: 1;
 }
+
 
 /* Opcional: Se quiser que a imagem de fundo pareça "viva", adicione isso: */
 .caixa-media::before {
@@ -200,7 +204,8 @@ body {
 }
 
 .card-previsao {
-    min-width: 10; /* Permite que o card encolha para caber */
+   min-width: 10px;
+/* Permite que o card encolha para caber */
     padding: -15px 2px;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 10px;
@@ -208,15 +213,21 @@ body {
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    transition: 0.3s;
+    transition: 0.25s ease;
 
 }
 
 .card-previsao:hover {
     background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-5px);
+    transform: translateY(-4px);
     border-color: #0e79ff;
 }
+.card-previsao.ativo {
+    background: rgba(255,255,255,0.25);
+    border: 1px solid #0e79ff;
+    transform: translateY(-5px);
+}
+
 
 .card-previsao h4 {
     font-size: 12px; /* Texto menor para os dias caberem */
@@ -262,4 +273,21 @@ body {
     padding: 5px 10px;
     border-radius: 10px;
     display: none; /* Escondido por padrão */
+}
+.nome-cidade {
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    color: white;
+    z-index: 5;
+    position: relative;
+}
+
+.dia-destaque {
+    font-size: 16px;
+    opacity: 0.9;
+    margin-bottom: 10px;
+    text-align: center;
+    position: relative;
+    z-index: 5;
 }
