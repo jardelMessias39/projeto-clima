@@ -322,3 +322,11 @@ function detectarVoz() {
     };
     rec.start();
 }
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then(() => console.log("PWA ativo"))
+      .catch(err => console.log("Erro SW:", err));
+  });
+}
