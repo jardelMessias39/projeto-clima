@@ -54,6 +54,12 @@ function atualizarFundoCaixa(climaPrincipal) {
 function tocarSomAmbienteComCodigo(weather) {
     if (!weather || !weather[0]) return;
 
+    // 1. SE JÁ EXISTE UM SOM TOCANDO, PARA ELE ANTES DE TUDO
+    if (somAmbiente) {
+        somAmbiente.pause();
+        somAmbiente.currentTime = 0;
+    }
+
     const id = weather[0].id;
     let urlSom = "";
 
@@ -63,17 +69,22 @@ function tocarSomAmbienteComCodigo(weather) {
     else if (id >= 800) urlSom = "./sons/som-do-vento.mp3";
     else return;
 
-    if (somAmbiente) {
-        somAmbiente.pause();
-        somAmbiente.currentTime = 0;
-    }
-
+    // 2. CRIA E TOCA O NOVO SOM
     somAmbiente = new Audio(urlSom);
     somAmbiente.loop = true;
     somAmbiente.volume = 0.15;
     somAmbiente.play().catch(e => console.log("Interação do usuário necessária para o som"));
-}
 
+    // 3. TIMER PARA ENCERRAR (Usando o nome correto da variável)
+    setTimeout(() => {
+        if (somAmbiente) {
+            console.log("Encerrando áudio após 30 segundos de ciclo.");
+            somAmbiente.pause();
+            somAmbiente.currentTime = 0;
+            somAmbiente = null; // Limpa a variável após parar
+        }
+    }, 30000); 
+}
 // 3. Atualizar painel principal (Agora com verificações de segurança)
 function atualizarPainelPrincipal(dados) {
 
